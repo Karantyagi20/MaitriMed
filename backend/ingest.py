@@ -1,16 +1,10 @@
 import os
 
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
-
-def run_ingest():    
-    INDEX_DIR = "./faiss_index"
-    EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-
-    print("=== MaitriMed Ingestion Pipeline ===")
 
 docs = [
     Document(page_content="""Dengue Fever symptoms include sudden high fever, severe headache,
@@ -105,19 +99,21 @@ ASHA workers available in every village for health guidance and support.""",
     metadata={"source": "Odisha Health Department", "topic": "government_services"}),
 ]
 
+
 def run_ingest():
+    INDEX_DIR = "./faiss_index"
+    EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
+    print("=== MaitriMed Ingestion Pipeline ===")
     print(f"[+] Loaded {len(docs)} health documents")
 
     print("[*] Splitting into chunks...")
-
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=512,
         chunk_overlap=64,
         separators=["\n\n", "\n", ".", " "],
     )
-
     chunks = splitter.split_documents(docs)
-
     print(f"[+] Created {len(chunks)} chunks")
 
     print("[*] Loading embedding model...")
@@ -130,8 +126,8 @@ def run_ingest():
     print("[*] Building FAISS index...")
     vectorstore = FAISS.from_documents(chunks, embeddings)
     vectorstore.save_local(INDEX_DIR)
-
     print(f"[✓] Index saved to {INDEX_DIR}/")
 
-    if __name__ == "__main__":   
-      run_ingest()
+
+if __name__ == "__main__":
+    run_ingest()
